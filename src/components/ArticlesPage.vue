@@ -21,7 +21,7 @@
         elevation="2"
       >
         <v-img
-          :src="article.Cover"
+          :src="getFullImageUrl(article.Cover)"
           height="200"
           cover
         ></v-img>
@@ -68,8 +68,10 @@
 import { ref, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { articleApi } from '@/services/articleApi'
+import { useImageUrl } from '@/composables/useImageUrl'
 
 const router = useRouter()
+const { getFullImageUrl } = useImageUrl()
 const loading = ref(false)
 const error = ref(null)
 const currentPage = ref(1)

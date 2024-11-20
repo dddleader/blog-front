@@ -17,7 +17,7 @@
           <v-card class="mb-6">
             <!-- 文章封面 -->
             <v-img
-              :src="article.Cover"
+              :src="getFullImageUrl(article.Cover)"
               height="300"
               cover
             ></v-img>
@@ -43,7 +43,7 @@
   </v-container>
 </template>
 
-<script>
+<script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { articleApi } from '@/services/articleApi'
@@ -51,72 +51,62 @@ import { marked } from 'marked'
 import hljs from 'highlight.js'
 import 'highlight.js/styles/github.css'
 import 'github-markdown-css'
+import { useImageUrl } from '@/composables/useImageUrl'
 
-export default {
-  name: 'ArticleDetailView',
-  setup() {
-    const route = useRoute()
-    const loading = ref(false)
-    const error = ref(null)
-    const article = ref(null)
+const { getFullImageUrl } = useImageUrl()
+const route = useRoute()
+const loading = ref(false)
+const error = ref(null)
+const article = ref(null)
 
-    // 配置 marked
-    marked.setOptions({
+// 配置 marked
+marked.setOptions({
+  renderer: new marked.Renderer(),
+  highlight: function(code, lang) {
+    const language = hljs.getLanguage(lang) ? lang : 'plaintext'
+    return hljs.highlight(code, { language }).value
+  },
+  pedantic: false,
+  gfm: true,
+  breaks: true,
+  sanitize: true,
+  smartypants: false,
+  xhtml: false
+})
+
+// 计算属性：渲染后的内容
+const renderedContent = computed(() => {
+  if (!article.value?.Content) return ''
+  return marked.parse(article.value.Content,
+    {
       renderer: new marked.Renderer(),
       highlight: function(code, lang) {
-        const language = hljs.getLanguage(lang) ? lang : 'plaintext'
-        return hljs.highlight(code, { language }).value
-      },
-      pedantic: false,
-      gfm: true,
-      breaks: true,
-      sanitize: true,
-      smartypants: false,
-      xhtml: false
-    })
-
-    // 计算属性：渲染后的内容
-    const renderedContent = computed(() => {
-      if (!article.value?.Content) return ''
-      return marked.parse(article.value.Content,
-        {
-          renderer: new marked.Renderer(),
-          highlight: function(code, lang) {
-            return hljs.highlight(code, { language: lang }).value
-          }
-        }
-      )
-    })
-
-    const fetchArticle = async () => {
-      const id = route.params.id
-      loading.value = true
-      error.value = null
-
-      try {
-        const response = await articleApi.getArticleById(id)
-        article.value = response.data.data
-        console.log('文章数据:', article.value)
-      } catch (err) {
-        error.value = '获取文章失败：' + err.message
-        console.error('获取文章失败:', err)
-      } finally {
-        loading.value = false
+        return hljs.highlight(code, { language: lang }).value
       }
     }
+  )
+})
 
-    onMounted(() => {
-      fetchArticle()
-    })
+const fetchArticle = async () => {
+  const id = route.params.id
+  loading.value = true
+  error.value = null
 
-    return {
-      loading,
-      error,
-      article,
-      renderedContent
-    }
+  try {
+    const response = await articleApi.getArticleById(id)
+    article.value = response.data.data
+    console.log('文章数据:', article.value)
+  } catch (err) {
+    error.value = '获取文章失败：' + err.message
+    console.error('获取文章失败:', err)
+  } finally {
+    loading.value = false
   }
 }
+
+onMounted(() => {
+  fetchArticle()
+})
 </script>
 
 <style>

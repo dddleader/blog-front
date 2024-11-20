@@ -11,12 +11,12 @@
           <v-icon>mdi-post</v-icon>
         </template>
       </v-list-item>
-      <v-list-item title="项目" value="projects" href="#projects">
+      <v-list-item title="项目" value="projects" :to="{ path: '/projects' }">
         <template v-slot:prepend>
           <v-icon>mdi-folder</v-icon>
         </template>
       </v-list-item>
-      <v-list-item title="关于我" value="about" href="#about">
+      <v-list-item title="关于我" value="about" :to="{ path: '/about' }">
         <template v-slot:prepend>
           <v-icon>mdi-account</v-icon>
         </template>
